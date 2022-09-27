@@ -1,6 +1,7 @@
 #include <igraph.h>
 
 #include<string.h>
+#include <stdio.h>
 
 #include "attack.h"
 #include "graph_gen.h"
@@ -143,7 +144,7 @@ void main() {
                 exit(1);
             }
             int id;
-            bool rr = true; 
+            bool rr = true;
             if(rr){
                 id = 2*num_epochs;
             }
