@@ -7,6 +7,41 @@
 #include "graph_gen.h"
 #include "sms_gen.h"
 
+/*
+
+vary epoch length:
+- changed this line:
+  - int msgs_per_epoch = ((msgs_per_user_per_day * num_users)/(24 * 60 * 60)) * msgs_per_epoch_mult[i];
+
+input real data
+- Message mLog[id][msgs_per_epoch]
+- Targets poi = create_log(num_epochs, msgs_per_epoch, g, rr, mLog)
+  - create_log populates mLog
+
+        typedef struct Messages {
+            double time;
+            int type;
+            int from;
+            int to;
+        } Message;
+
+
+variables
+- epoch length: 1 second
+    - because: int msgs_per_epoch = ((msgs_per_user_per_day * num_users)/(24 * 60 *** 60)) * msgs_per_epoch_mult[i];
+- msgs per user per day: 50
+- msgs per epoch mult: 1, 5, 10, 30, 60, 300, 600, 1800, 3600
+    - what does multiplying the msgs per epoch do?
+    - so higher msgs per epoch mult means longer epochs?
+- num epochs: 30
+- num users: 10k, 15k, 20k, …, 100k
+
+what do the numbers in the data logs mean?
+- each iteration is a line. the numbers are the sizes array. what is sizes? oh! and the length of the list on each iteration is the number of epochs needed. so sizes is probably the number of potential senders.
+
+what is this attack?
+
+*/
 int setup_run_attack(igraph_t g, int num_users, int num_epochs, int msgs_per_epoch, bool rr, int id, int sizes[20]) {
     Message mLog[id][msgs_per_epoch];
     Targets poi = create_log(num_epochs, msgs_per_epoch, g, rr, mLog);
@@ -18,7 +53,7 @@ int setup_run_attack(igraph_t g, int num_users, int num_epochs, int msgs_per_epo
     return needed_epochs;
 }
 
-void possible_senders_per_iteration_data(int num_users, int num_epochs, int msgs_per_epoch, bool rr, int id, int max_iterations, int msgs_per_epoch_mult) {
+void possible_senders_per_iteration_data(int num_users, int num_epochs, int msgs_per_epoch, bool rr, int id, int max_iterations, int msgs_per_epoch_mult, int epoch_length) {
     char file_name1[50];
     // char file_name2[50];
     // char file_name3[50];
@@ -26,7 +61,7 @@ void possible_senders_per_iteration_data(int num_users, int num_epochs, int msgs
     // char file_name5[50];
     // char file_name6[50];
     // char file_name7[50];
-    sprintf(file_name1, "data/erdos_renyi_%d_%d.dat", num_users, msgs_per_epoch_mult);
+    sprintf(file_name1, "data/erdos_renyi_%d_%d_%d.dat", num_users, msgs_per_epoch_mult, epoch_length);
     // sprintf(file_name2, "data/watts_strogatz_%d.dat", num_users);
     // sprintf(file_name3, "data/barabasi_%d.dat", num_users);
     // sprintf(file_name4, "data/full_%d.dat", num_users);
@@ -138,7 +173,15 @@ void main() {
     for (int i = 0; i < 9; i++) {
         for(int num_users = 10000; num_users < 100000; num_users += 5000) {
             printf("num users: %d\n", num_users);
-            int msgs_per_epoch = ((msgs_per_user_per_day * num_users)/(24*60*60))*msgs_per_epoch_mult[i];
+
+            // int epoch_length = 1; // original: 1 second epochs
+            int epoch_length = 60; // modified: 1 minute epochs
+            printf("epoch length: %d seconds\n", epoch_length);
+
+            // int msgs_per_epoch = ((msgs_per_user_per_day * num_users)/(24*60*60))*msgs_per_epoch_mult[i]; // original
+
+            int msgs_per_epoch = ((msgs_per_user_per_day * num_users)/(24*60*60/epoch_length))*msgs_per_epoch_mult[i]; // modified
+
             if (msgs_per_epoch <= 1) {
                 printf("not enough users for assuming 50 messages per day per user\n");
                 exit(1);
@@ -153,7 +196,7 @@ void main() {
             }
             int max_iterations = 100;
 
-            possible_senders_per_iteration_data(num_users, num_epochs, msgs_per_epoch, rr, id, max_iterations, msgs_per_epoch_mult[i]);
+            possible_senders_per_iteration_data(num_users, num_epochs, msgs_per_epoch, rr, id, max_iterations, msgs_per_epoch_mult[i], epoch_length);
         }
     }
 }
