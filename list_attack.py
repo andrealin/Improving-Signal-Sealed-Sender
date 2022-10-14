@@ -110,6 +110,8 @@ def run_x_messages(msgs_per_epoch, num_users, iterations, num_epochs, msgs_mult,
         # epoch = 1
         # intersection = set(range(num_users))
         record = []
+
+        # https://docs.python.org/3/library/collections.html#collections.Counter
         count = Counter()
         most_common = count.most_common()
         # an epoch starts when a message (series of messages?) are being sent to Bob
@@ -801,6 +803,41 @@ def alice_rank_test():
     # variant_3(msgs_per_epoch, num_users, max_iterations, non_bob_epochs, num_pop_users, num_other_senders, num_epochs, msgs_mult, reply_mult, repeat_mult, "data/variant_2_{:d}_{:d}_{:d}.dat".format(msgs_per_epoch, num_pop_users, num_other_senders), event_f, others_f)
 
 
+def new_test_inner():
+    # msgs_per_user_per_day = 50
+    msgs_mult = 1
+    reply_mult = 0.25
+    repeat_mult = 0.25
+    num_users = 10 ** 6
+    event_f = 0.00
+    others_f = 0
+    num_epochs = 100
+    # msgs_per_epoch = ((msgs_per_user_per_day*num_users)/(24*60*60))
+
+    # for num_msgs in num_msgs_range:
+    #     print("num_users: {}, mult: {}, num_msgs: {}".format(num_users, msgs_mult, num_msgs))
+    #     if msgs_per_epoch <= 1:
+    #         print("Not enough msgs in each epoch")
+    #         exit(0)
+
+    max_iterations = 100
+    non_bob_epochs = 1
+    num_pop_users = 0
+    num_other_senders = 0
+    for msgs_per_epoch in range(200, 301, 25):
+        print("msgs_per_epoch_test: {}".format(msgs_per_epoch))
+        # run_x_messages(msgs_per_epoch, num_users, max_iterations, num_epochs, msgs_mult, reply_mult, repeat_mult, "data/msgs_per_epoch_test_{:d}.dat".format(msgs_per_epoch), event_f, others_f)
+        variant_3(msgs_per_epoch, num_users, max_iterations, non_bob_epochs, num_pop_users, num_other_senders,
+                  num_epochs, msgs_mult, reply_mult, repeat_mult,
+                  "data/msgs_per_epoch_test_variant_3_{:d}.dat".format(msgs_per_epoch), event_f, others_f)
+    # run_updated_attack(msgs_per_epoch, num_users, max_iterations, 1, reply_mult, repeat_mult, "data/updated_attack_{:d}_{:d}.dat".format(1, num_users))
+    # run_attack(msgs_per_epoch*3, num_users, max_iterations, 1, reply_mult, repeat_mult, 0.5, "data/old_attack_{:d}_{:d}".format(num_users, msgs_per_epoch*3), 1)
+
+
+def new_test():
+    # new_test_inner()
+    run_x_messages_test()
+
 if __name__ == "__main__":
     # reply_repeat_fill_list_test()
     # reply_repeat_list_test()
@@ -819,3 +856,4 @@ if __name__ == "__main__":
     msgs_per_epoch_test()
     # alice_rank_test()
     # attack_variant_3()
+    # new_test()

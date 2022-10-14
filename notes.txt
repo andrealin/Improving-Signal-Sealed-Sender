@@ -1,0 +1,5 @@
+list_attack
+
+perhaps variant 3
+
+is the attack described in the paper
