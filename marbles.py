@@ -63,10 +63,12 @@ def experiment(marbles):
 
 
 def main():
-    if len(sys.argv) < 2:
-        print("need 1 arguments, total number of marbles.")
-        sys.exit(1)
-    numMarbles = int(sys.argv[1])
+    # if len(sys.argv) < 2:
+    #     print("need 1 arguments, total number of marbles.")
+    #     sys.exit(1)
+    # numMarbles = int(sys.argv[1])
+
+    numMarbles = 10
 
     marbles = range(numMarbles)
     experiment(marbles)
