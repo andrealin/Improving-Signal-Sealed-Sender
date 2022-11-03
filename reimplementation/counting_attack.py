@@ -3,13 +3,17 @@ from parameters import Parameters
 from dateutil import parser
 import random
 
+
+
 def attack():
     users, messages = enron.parse_data()
     # Bob = "arnold" # arnold just talks to themself
     # Bob = "mckay"
     # Bob = "wolfe"
-    # Bob = "kaminski" why do they talk to themselves?
+    # Bob = "kaminski" # also talks to self
     Bob = "whalley"
+
+    # users, messages = simulation.generate
 
     parameters = Parameters()
 
