@@ -17,7 +17,8 @@ class Graph:
             v = u
             while v == u:
                 v = rng.integers(0, total_users)
-            self.edges.append((u, v))
+
+            self.edges.append((u, v)) # undirected edge
             self.adjacency_list[u].add(v)
             self.adjacency_list[v].add(u)
     def random_edge(self):
@@ -60,18 +61,19 @@ def simulate_attack(
 
     graph = Graph(total_users, connectivity)
 
-    bob = rng.integers(0, total_users)
-    associates = graph.adjacency_list[bob]
-    if len(associates) == 0:
-        print("bob does not talk to anyone")
-        return
+    # find a suitable bob
+    bob = None
+    associates = set()
 
-    max_associate_place = total_users
+    while len(associates) == 0:
+        bob = rng.integers(0, total_users)
+        associates = graph.adjacency_list[bob]
 
     count = Counter()
 
     epochs = 0
-    alice_ranks = [max_associate_place]
+    max_associate_place = total_users
+    max_associate_places = [max_associate_place]
 
     while max_associate_place > len(associates):
 
@@ -79,18 +81,18 @@ def simulate_attack(
 
         if epochs > 500:
             print(f"{epochs} epochs ran.")
-            return alice_ranks
+            return max_associate_places
 
         # target epoch
         is_target_epoch = False
         while not is_target_epoch:
-            active_users, messages = generate(users_per_epoch, graph)
+            active_users, _ = generate(users_per_epoch, graph)
             if bob in active_users:
                 is_target_epoch = True
-        count.update(active_users)
+                count.update(active_users)
 
         # random epoch
-        active_users, messages = generate(users_per_epoch, graph)
+        active_users, _ = generate(users_per_epoch, graph)
         count.subtract(active_users)
 
         # bob cannot be talking to themself
@@ -101,23 +103,25 @@ def simulate_attack(
 
         print(f"epoch {epochs} counts {count}")
 
-        # calculate alice place
+        # calculate associate places
         most_common = count.most_common()
+        ppl = [x[0] for x in most_common]
 
         max_associate_place = 0
         for alice in associates:
-
-            ppl = [x[0] for x in most_common]
             alice_loc = ppl.index(alice) if alice in ppl else -1
             if alice_loc == -1:
-                continue
-            alice_class = [x[0] for x in most_common if x[1] == most_common[alice_loc][1]]
-            alice_place = len(alice_class) + ppl.index(alice_class[0])
+                # todo: what to do if edge never selected. does associate still count?
+                alice_place = total_users
+            else:
+                alice_class = [x[0] for x in most_common if x[1] == most_common[alice_loc][1]]
+                alice_place = len(alice_class) + ppl.index(alice_class[0])
+            # print(f"epoch {epochs} associate {alice} place {alice_place}")
 
             if alice_place > max_associate_place:
                 max_associate_place = alice_place
 
-        alice_ranks.append(max_associate_place)
+        max_associate_places.append(max_associate_place)
 
 
     print(f"summary ------- ")
@@ -125,13 +129,35 @@ def simulate_attack(
     print(f"total users {total_users}")
     print(f"connectivity {connectivity}")
     print(f"bob {bob} has {len(associates)} associate(s): {associates}")
-    print(alice_ranks)
+    print(f"max associate places {max_associate_places}")
 
     return epochs
 
+def num_epochs_vs_num_users_per_epoch_test():
+    trials = 10
+    users_per_epochs = [10, 100, 500, 1000]
+    total_users = 10000
+    connectivity = 1
+
+    results = {}
+
+    for users_per_epoch in users_per_epochs:
+        num_epochss = []
+        for i in range(trials):
+            epochs = simulate_attack(
+                users_per_epoch=users_per_epoch,
+                total_users=total_users,
+                connectivity=connectivity)
+            num_epochss.append(epochs)
+        results[users_per_epoch] = sum(num_epochss)/len(num_epochss)
+
+    return results
 
 def experiment():
 
-    print(f"epochs required: {simulate_attack(8, 10000)}")
+    # print(f"epochs required: {simulate_attack(8, 10000, 3)}")
+    # print(f"epochs required: {simulate_attack(8, 10000, 1)}")
+
+    print(num_epochs_vs_num_users_per_epoch_test())
 
 experiment()
