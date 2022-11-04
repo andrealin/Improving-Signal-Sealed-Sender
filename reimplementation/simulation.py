@@ -1,7 +1,13 @@
 import numpy as np
 from collections import Counter
+import logging
+import matplotlib.pyplot as plt
+import pandas as pd
 
 rng = np.random.default_rng()
+
+logging.basicConfig(filename='simulation.log', filemode='w', level=logging.DEBUG)
+
 
 
 # todo: rank does not work. or argsort does not work.
@@ -135,13 +141,12 @@ def simulate_attack(
 
 def num_epochs_vs_num_users_per_epoch_test():
     trials = 10
-    users_per_epochs = [10, 100, 500, 1000]
     total_users = 10000
     connectivity = 1
 
-    results = {}
+    results = []
 
-    for users_per_epoch in users_per_epochs:
+    for users_per_epoch in range(20, 300, 40):
         num_epochss = []
         for i in range(trials):
             epochs = simulate_attack(
@@ -149,8 +154,17 @@ def num_epochs_vs_num_users_per_epoch_test():
                 total_users=total_users,
                 connectivity=connectivity)
             num_epochss.append(epochs)
-        results[users_per_epoch] = sum(num_epochss)/len(num_epochss)
+        results.append([users_per_epoch, sum(num_epochss)/len(num_epochss)])
 
+    logging.info(f"trials {trials}")
+    logging.info(f"total users {total_users}")
+    logging.info(f"connectivity {connectivity}")
+    logging.info(results)
+
+    df = pd.DataFrame(results)
+    df.plot.line(0, 1)
+
+    plt.show()
     return results
 
 def experiment():
@@ -158,6 +172,20 @@ def experiment():
     # print(f"epochs required: {simulate_attack(8, 10000, 3)}")
     # print(f"epochs required: {simulate_attack(8, 10000, 1)}")
 
-    print(num_epochs_vs_num_users_per_epoch_test())
+    num_epochs_vs_num_users_per_epoch_test()
+
+    #todo
+    '''
+    parameters:
+    connectivity
+    num users per epoch
+    num users: 1 million. or 100K
+    num users bob talks to
+    num users alice talks to
+    whether there are popular users or not
+    social graph
+    bursty behavior
+    day night
+    '''
 
 experiment()
