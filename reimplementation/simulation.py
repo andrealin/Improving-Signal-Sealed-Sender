@@ -223,6 +223,7 @@ def num_epochs_vs_num_users_per_epoch_test(
     for users_per_epoch in users_per_epoch_range:
         num_epochss = []
         for i in range(trials):
+            print(f"{users_per_epoch} users per epoch: trial {i}")
             epochs = simulate_attack(
                 users_per_epoch=users_per_epoch,
                 graph=graph,
@@ -263,6 +264,13 @@ def experiment():
         trials=20,
         max_bob_num_associates=1,  # too many associates, takes too long to deanonymize
     )
+
+    # num_epochs_vs_num_users_per_epoch_test(
+    #     graph=graph,
+    #     users_per_epoch_range=[1000, 50000, 100000],
+    #     trials=20,
+    #     max_bob_num_associates=1,  # too many associates, takes too long to deanonymize
+    # )
 
     #todo
     '''

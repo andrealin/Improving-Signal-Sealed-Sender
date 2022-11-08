@@ -1,0 +1,35 @@
+users per epoch 50000
+epochs required 7
+
+users per epoch 50000
+epochs required 31
+
+users per epoch 50000
+epochs required 46
+
+users per epoch 50000
+epochs required 19
+
+users per epoch 50000
+epochs required 67
+
+users per epoch 50000
+epochs required 24
+
+users per epoch 50000
+epochs required 7
+
+users per epoch 50000
+epochs required 14
+
+users per epoch 50000
+epochs required 47
+
+users per epoch 50000
+epochs required 10
+
+users per epoch 50000
+epochs required 38
+
+users per epoch 50000
+epochs required 24
