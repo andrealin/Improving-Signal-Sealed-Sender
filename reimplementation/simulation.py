@@ -3,6 +3,7 @@ from collections import Counter
 import logging
 import matplotlib.pyplot as plt
 import pandas as pd
+from datetime import datetime
 
 rng = np.random.default_rng()
 
@@ -87,6 +88,7 @@ def generate(users_per_epoch, graph):
 def simulate_attack(
         users_per_epoch=800,
         graph=None,
+        max_bob_num_associates=6,
         total_users=1000000,
         connectivity=1):
     '''
@@ -105,10 +107,20 @@ def simulate_attack(
     # find a suitable bob
     bob = None
     associates = set()
+    associates_too_popular = False
 
-    while len(associates) == 0:
+    while len(associates) == 0 or len(associates) > max_bob_num_associates or associates_too_popular:
         bob = rng.integers(0, total_users)
         associates = graph.adjacency_list[bob]
+
+        associates_too_popular = False # if associate too popular, take long time to deanonymize
+        for associate in associates:
+            if len(graph.adjacency_list[associate]) > 100:
+                associates_too_popular = True
+
+    alice = list(associates)[0]
+    print(f"bob {bob} has {len(associates)} associate(s): {associates}")
+    print(f"btw, alice {alice} has {len(graph.adjacency_list[alice])} associates")
 
     count = Counter()
 
@@ -124,13 +136,34 @@ def simulate_attack(
             print(f"{epochs} epochs ran.")
             return max_associate_places
 
-        # target epoch
-        is_target_epoch = False
-        while not is_target_epoch:
-            active_users, _ = generate(users_per_epoch, graph)
-            if bob in active_users: # i'm assuming this search takes a long time. wait actually idk what is taking so long.
-                is_target_epoch = True
-                count.update(active_users)
+        # old way of generating target epoch:
+        # # this search is the current bottleneck
+        # # should be faster for large num users per epoch?
+        # print(f"{datetime.now()} start look for target epoch")
+        #
+        # # target epoch
+        # is_target_epoch = False
+        # while not is_target_epoch:
+        #     active_users, _ = generate(users_per_epoch, graph)
+        #     if bob in active_users:
+        #         is_target_epoch = True
+        #         count.update(active_users)
+        # print(f"{datetime.now()} end look for target epoch")
+
+
+        # current way of generating target epoch
+
+        # for large num users per epoch, we don't need to search
+        # for epoch with bob. we can make an epoch with bob.
+        # and generate users_per_epoch - 2 other users.
+        active_users, _ = generate(users_per_epoch-2, graph)
+        active_users.add(bob)
+        random_associate_index = rng.integers(0, len(associates))
+        random_associate = list(associates)[random_associate_index]
+        print(f"random associate added {random_associate}")
+        active_users.add(random_associate)
+        count.update(active_users)
+
 
         # random epoch
         active_users, _ = generate(users_per_epoch, graph)
@@ -142,7 +175,7 @@ def simulate_attack(
         count.subtract({bob})
         count.subtract({bob})
 
-        print(f"epoch {epochs} counts {count}")
+        print(f"epoch {epochs} counts {count.most_common(10)}")
 
         # calculate associate places
         most_common = count.most_common()
@@ -167,9 +200,11 @@ def simulate_attack(
 
     print(f"summary ------- ")
     print(f"users per epoch {users_per_epoch}")
+    print(f"epochs required {epochs}")
     print(f"total users {total_users}")
     print(f"connectivity {connectivity}")
     print(f"bob {bob} has {len(associates)} associate(s): {associates}")
+    print(f"btw, alice {alice} has {len(graph.adjacency_list[alice])} associates")
     print(f"max associate places {max_associate_places}")
 
     return epochs
@@ -177,7 +212,8 @@ def simulate_attack(
 def num_epochs_vs_num_users_per_epoch_test(
         graph=None,
         users_per_epoch_range=range(20, 300, 40),
-        trials=10):
+        trials=10,
+        max_bob_num_associates=6):
 
     total_users = 10000
     connectivity = 1
@@ -190,6 +226,7 @@ def num_epochs_vs_num_users_per_epoch_test(
             epochs = simulate_attack(
                 users_per_epoch=users_per_epoch,
                 graph=graph,
+                max_bob_num_associates=max_bob_num_associates,
                 total_users=total_users,
                 connectivity=connectivity)
             num_epochss.append(epochs)
@@ -216,8 +253,9 @@ def experiment():
     # num_epochs_vs_num_users_per_epoch_test(graph=graph)
     num_epochs_vs_num_users_per_epoch_test(
         graph=graph,
-        users_per_epoch_range=range(10, 100, 30),
-        trials=3
+        users_per_epoch_range=range(1000, 5000, 500),
+        trials=20,
+        max_bob_num_associates=1, # too many associates, takes too long to deanonymize
     )
 
     #todo
