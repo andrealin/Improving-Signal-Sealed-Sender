@@ -1,5 +1,7 @@
 # enron dataset is too big
 maildir/
+twitch_gamers/
+wiki-Talk.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

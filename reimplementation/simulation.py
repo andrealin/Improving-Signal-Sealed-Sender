@@ -251,11 +251,17 @@ def experiment():
     graph = RealGraph()
 
     # num_epochs_vs_num_users_per_epoch_test(graph=graph)
+    # num_epochs_vs_num_users_per_epoch_test(
+    #     graph=graph,
+    #     users_per_epoch_range=range(1000, 15000, 2000),
+    #     trials=20,
+    #     max_bob_num_associates=1,  # too many associates, takes too long to deanonymize
+    # )
     num_epochs_vs_num_users_per_epoch_test(
         graph=graph,
-        users_per_epoch_range=range(1000, 5000, 500),
+        users_per_epoch_range=[1000, 2000, 4000, 8000, 16000, 32000],
         trials=20,
-        max_bob_num_associates=1, # too many associates, takes too long to deanonymize
+        max_bob_num_associates=1,  # too many associates, takes too long to deanonymize
     )
 
     #todo
