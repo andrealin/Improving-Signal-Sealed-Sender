@@ -16,6 +16,7 @@ class Graph:
         num_edges = int(connectivity * total_users)
         self.edges = []
         self.adjacency_list = []
+        self.total_users = total_users
         for i in range(total_users):
             self.adjacency_list.append(set())
         for i in range(num_edges):
@@ -27,6 +28,36 @@ class Graph:
             self.edges.append((u, v)) # undirected edge
             self.adjacency_list[u].add(v)
             self.adjacency_list[v].add(u)
+    def random_edge(self):
+        random_index = rng.integers(0, len(self.edges))
+        return self.edges[random_index]
+
+# wikipedia user pages
+class RealGraph:
+    def __init__(self):
+        self.total_users = 2394385
+
+        self.edges = []
+        self.adjacency_list = []
+        for i in range(self.total_users):
+            self.adjacency_list.append(set())
+
+        with open('../wiki-Talk.txt') as f:
+            count = 0
+            for line in f:
+                if count % 1000000 == 0:
+                    print(f"edges read {count}")
+                count += 1
+                if line[0] is "#":
+                    continue
+                line = line.strip('\n').split('\t')
+                u = int(line[0])
+                v = int(line[1])
+
+                self.edges.append((u, v)) # undirected edge
+                self.adjacency_list[u].add(v)
+                self.adjacency_list[v].add(u)
+
     def random_edge(self):
         random_index = rng.integers(0, len(self.edges))
         return self.edges[random_index]
@@ -55,6 +86,7 @@ def generate(users_per_epoch, graph):
 
 def simulate_attack(
         users_per_epoch=800,
+        graph=None,
         total_users=1000000,
         connectivity=1):
     '''
@@ -65,7 +97,10 @@ def simulate_attack(
     :return:
     '''
 
-    graph = Graph(total_users, connectivity)
+    if graph is None:
+        graph = Graph(total_users, connectivity)
+
+    total_users = graph.total_users
 
     # find a suitable bob
     bob = None
@@ -93,7 +128,7 @@ def simulate_attack(
         is_target_epoch = False
         while not is_target_epoch:
             active_users, _ = generate(users_per_epoch, graph)
-            if bob in active_users:
+            if bob in active_users: # i'm assuming this search takes a long time. wait actually idk what is taking so long.
                 is_target_epoch = True
                 count.update(active_users)
 
@@ -139,18 +174,22 @@ def simulate_attack(
 
     return epochs
 
-def num_epochs_vs_num_users_per_epoch_test():
-    trials = 10
+def num_epochs_vs_num_users_per_epoch_test(
+        graph=None,
+        users_per_epoch_range=range(20, 300, 40),
+        trials=10):
+
     total_users = 10000
     connectivity = 1
 
     results = []
 
-    for users_per_epoch in range(20, 300, 40):
+    for users_per_epoch in users_per_epoch_range:
         num_epochss = []
         for i in range(trials):
             epochs = simulate_attack(
                 users_per_epoch=users_per_epoch,
+                graph=graph,
                 total_users=total_users,
                 connectivity=connectivity)
             num_epochss.append(epochs)
@@ -172,7 +211,14 @@ def experiment():
     # print(f"epochs required: {simulate_attack(8, 10000, 3)}")
     # print(f"epochs required: {simulate_attack(8, 10000, 1)}")
 
-    num_epochs_vs_num_users_per_epoch_test()
+    graph = RealGraph()
+
+    # num_epochs_vs_num_users_per_epoch_test(graph=graph)
+    num_epochs_vs_num_users_per_epoch_test(
+        graph=graph,
+        users_per_epoch_range=range(10, 100, 30),
+        trials=3
+    )
 
     #todo
     '''
